@@ -1364,4 +1364,35 @@ function selectPoMethod(m) {
   };
   document.getElementById('po-instructions').style.whiteSpace = 'pre-line';
   document.getElementById('po-instructions').textContent = instructions[m];
-  document.getElementById('po-btn').textCo
+  document.getElementById('po-btn').textContent =
+    m==='stripe' ? 'Pay with Stripe →' :
+    m==='venmo'  ? 'Open Venmo →' : 'Send Payment via PayPal →';
+}
+
+function completePurchase() {
+  const email = document.getElementById('po-email')?.value.trim();
+  const tg = document.getElementById('po-tg')?.value.trim();
+  if(!email) { alert('Please enter your email'); return; }
+  const p = PLANS[poPlan] || PLANS.pro;
+  if(poMethod === 'paypal') {
+    window.open(`https://paypal.me/rishisharma1510/${p.price}`, '_blank');
+  } else if(poMethod === 'venmo') {
+    window.open('https://venmo.com/rishisharma1510', '_blank');
+  } else {
+    window.open('https://buy.stripe.com/YOUR_STRIPE_LINK', '_blank');
+  }
+  toast('i', 'Complete payment and your access code arrives within 1 hour!');
+}
+
+// ── TOAST ──
+function toast(type, msg) {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(() => t.remove(), 300); }, 4000);
+}
+</script>
+</body>
+</html>
