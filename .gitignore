@@ -1,0 +1,13 @@
+# NEVER commit these to GitHub!
+user_data/          # All user private data
+*.json              # User profiles and positions
+*.log               # Bot logs
+.env                # Environment variables
+__pycache__/
+*.pyc
+*.pem               # AWS key files
+*.ppk               # PuTTY key files
+
+# OS files
+.DS_Store
+Thumbs.db

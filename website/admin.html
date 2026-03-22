@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeOracle AI — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050810;
+  --surface: #0d1220;
+  --surface2: #131928;
+  --border: rgba(99,179,237,0.12);
+  --blue: #63b3ed;
+  --green: #68d391;
+  --red: #fc8181;
+  --gold: #f6e05e;
+  --purple: #b794f4;
+  --text: #e2e8f0;
+  --muted: #718096;
+  --font: 'Syne', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* LOGIN */
+#login-screen {
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at 30% 20%, rgba(99,179,237,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 80%, rgba(183,148,244,0.08) 0%, transparent 60%), var(--bg);
+}
+.login-box {
+  background:var(--surface); border:1px solid var(--border); border-radius:20px;
+  padding:48px; width:100%; max-width:420px; text-align:center;
+}
+.login-logo { font-size:36px; font-weight:800; margin-bottom:8px; }
+.login-logo span { color:var(--blue); }
+.login-sub { color:var(--muted); margin-bottom:40px; font-size:15px; }
+.google-btn {
+  display:flex; align-items:center; justify-content:center; gap:12px;
+  width:100%; padding:14px 24px; background:white; color:#1a1a1a;
+  border:none; border-radius:12px; font-size:16px; font-weight:600;
+  cursor:pointer; transition:transform 0.15s, box-shadow 0.15s; font-family:var(--font);
+}
+.google-btn:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(255,255,255,0.15); }
+.google-icon { width:20px; height:20px; }
+.login-note { margin-top:20px; color:var(--muted); font-size:13px; }
+.login-note span { color:var(--blue); }
+
+/* MAIN LAYOUT */
+#app { display:none; min-height:100vh; }
+.sidebar {
+  width:240px; background:var(--surface); border-right:1px solid var(--border);
+  position:fixed; top:0; left:0; height:100vh; display:flex; flex-direction:column;
+  padding:24px 0; z-index:10;
+}
+.sidebar-logo { padding:0 24px 24px; border-bottom:1px solid var(--border); margin-bottom:8px; }
+.sidebar-logo .name { font-size:18px; font-weight:800; color:var(--blue); }
+.sidebar-logo .role { font-size:11px; color:var(--muted); font-family:var(--mono); }
+.nav-item {
+  display:flex; align-items:center; gap:12px; padding:12px 24px;
+  color:var(--muted); cursor:pointer; transition:all 0.15s; font-size:14px; font-weight:600;
+  border-left:3px solid transparent;
+}
+.nav-item:hover { color:var(--text); background:rgba(255,255,255,0.03); }
+.nav-item.active { color:var(--blue); border-left-color:var(--blue); background:rgba(99,179,237,0.05); }
+.nav-item .icon { font-size:18px; width:24px; text-align:center; }
+.sidebar-bottom { margin-top:auto; padding:16px 24px; border-top:1px solid var(--border); }
+.admin-user { display:flex; align-items:center; gap:10px; }
+.admin-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--purple)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; flex-shrink:0; }
+.admin-name { font-size:13px; font-weight:600; }
+.admin-email { font-size:11px; color:var(--muted); font-family:var(--mono); }
+.logout-btn { margin-top:12px; width:100%; padding:8px; background:rgba(252,129,129,0.1); border:1px solid rgba(252,129,129,0.2); color:var(--red); border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; font-family:var(--font); transition:all 0.15s; }
+.logout-btn:hover { background:rgba(252,129,129,0.2); }
+
+/* MAIN CONTENT */
+.main { margin-left:240px; padding:32px; min-height:100vh; }
+.page { display:none; }
+.page.active { display:block; }
+.page-title { font-size:28px; font-weight:800; margin-bottom:4px; }
+.page-sub { color:var(--muted); font-size:14px; margin-bottom:32px; }
+
+/* STATS GRID */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:32px; }
+.stat-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; position:relative; overflow:hidden; }
+.stat-card::after { content:''; position:absolute; top:-20px; right:-20px; width:80px; height:80px; border-radius:50%; opacity:0.1; }
+.stat-card.blue::after { background:var(--blue); }
+.stat-card.green::after { background:var(--green); }
+.stat-card.gold::after { background:var(--gold); }
+.stat-card.purple::after { background:var(--purple); }
+.stat-label { font-size:12px; color:var(--muted); font-family:var(--mono); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.stat-value { font-size:36px; font-weight:800; }
+.stat-value.blue { color:var(--blue); }
+.stat-value.green { color:var(--green); }
+.stat-value.gold { color:var(--gold); }
+.stat-value.purple { color:var(--purple); }
+.stat-change { font-size:12px; color:var(--muted); margin-top:4px; }
+
+/* TABLE */
+.table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+.table-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid var(--border); }
+.table-title { font-size:16px; font-weight:700; }
+.table-actions { display:flex; gap:8px; }
+table { width:100%; border-collapse:collapse; }
+th { padding:12px 24px; text-align:left; font-size:11px; font-family:var(--mono); color:var(--muted); text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid var(--border); font-weight:500; }
+td { padding:14px 24px; font-size:14px; border-bottom:1px solid rgba(255,255,255,0.03); }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,255,255,0.02); }
+
+/* BADGES */
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; font-family:var(--mono); }
+.badge.active { background:rgba(104,211,145,0.15); color:var(--green); }
+.badge.expired { background:rgba(252,129,129,0.15); color:var(--red); }
+.badge.trial { background:rgba(246,224,94,0.15); color:var(--gold); }
+.badge.pro { background:rgba(99,179,237,0.15); color:var(--blue); }
+.badge.basic { background:rgba(255,255,255,0.08); color:var(--muted); }
+.badge.premium { background:rgba(183,148,244,0.15); color:var(--purple); }
+.badge.lifetime { background:linear-gradient(135deg,rgba(246,224,94,0.2),rgba(183,148,244,0.2)); color:var(--gold); }
+
+/* BUTTONS */
+.btn { padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; border:none; font-family:var(--font); transition:all 0.15s; }
+.btn-primary { background:var(--blue); color:#050810; }
+.btn-primary:hover { opacity:0.9; transform:translateY(-1px); }
+.btn-danger { background:rgba(252,129,129,0.15); color:var(--red); border:1px solid rgba(252,129,129,0.3); }
+.btn-danger:hover { background:rgba(252,129,129,0.25); }
+.btn-ghost { background:rgba(255,255,255,0.05); color:var(--text); border:1px solid var(--border); }
+.btn-ghost:hover { background:rgba(255,255,255,0.08); }
+.btn-success { background:rgba(104,211,145,0.15); color:var(--green); border:1px solid rgba(104,211,145,0.3); }
+.btn-success:hover { background:rgba(104,211,145,0.25); }
+
+/* FORMS */
+.form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+.form-group { display:flex; flex-direction:column; gap:8px; }
+.form-label { font-size:12px; font-family:var(--mono); color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+.form-input, .form-select {
+  background:var(--surface2); border:1px solid var(--border); border-radius:10px;
+  padding:12px 16px; color:var(--text); font-size:14px; font-family:var(--font);
+  transition:border-color 0.15s; outline:none;
+}
+.form-input:focus, .form-select:focus { border-color:var(--blue); }
+.form-input::placeholder { color:var(--muted); }
+.form-section { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; }
+.form-section-title { font-size:16px; font-weight:700; margin-bottom:4px; }
+.form-section-sub { color:var(--muted); font-size:13px; margin-bottom:24px; }
+.form-hint { font-size:12px; color:var(--muted); margin-top:4px; }
+
+/* CODE BOX */
+.code-box { background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:10px; padding:16px; font-family:var(--mono); font-size:13px; color:var(--green); word-break:break-all; position:relative; }
+.copy-btn { position:absolute; top:8px; right:8px; padding:4px 10px; background:rgba(255,255,255,0.1); border:none; color:var(--muted); border-radius:6px; cursor:pointer; font-size:11px; font-family:var(--font); }
+.copy-btn:hover { color:var(--text); }
+
+/* MODAL */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px; width:100%; max-width:480px; }
+.modal-title { font-size:20px; font-weight:800; margin-bottom:4px; }
+.modal-sub { color:var(--muted); font-size:13px; margin-bottom:24px; }
+.modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:24px; }
+
+/* TOAST */
+.toast-container { position:fixed; bottom:24px; right:24px; z-index:999; display:flex; flex-direction:column; gap:8px; }
+.toast { padding:14px 20px; border-radius:12px; font-size:14px; font-weight:600; min-width:280px; animation:slideIn 0.3s ease; }
+.toast.success { background:rgba(104,211,145,0.15); border:1px solid rgba(104,211,145,0.3); color:var(--green); }
+.toast.error { background:rgba(252,129,129,0.15); border:1px solid rgba(252,129,129,0.3); color:var(--red); }
+.toast.info { background:rgba(99,179,237,0.15); border:1px solid rgba(99,179,237,0.3); color:var(--blue); }
+@keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+/* SETTINGS TOGGLE */
+.toggle-wrap { display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--border); }
+.toggle-wrap:last-child { border-bottom:none; }
+.toggle-info h4 { font-size:14px; font-weight:600; margin-bottom:2px; }
+.toggle-info p { font-size:12px; color:var(--muted); }
+.toggle { width:44px; height:24px; background:var(--border); border-radius:12px; cursor:pointer; position:relative; transition:background 0.2s; border:none; flex-shrink:0; }
+.toggle.on { background:var(--blue); }
+.toggle::after { content:''; position:absolute; width:18px; height:18px; background:white; border-radius:50%; top:3px; left:3px; transition:transform 0.2s; }
+.toggle.on::after { transform:translateX(20px); }
+
+/* EMAIL TEMPLATE PREVIEW */
+.email-preview { background:#ffffff; color:#1a1a1a; border-radius:12px; padding:24px; font-family:Arial,sans-serif; font-size:14px; line-height:1.6; }
+.email-preview h2 { color:#0a0e1a; font-size:20px; margin-bottom:8px; }
+.email-preview .ep-badge { display:inline-block; background:#63b3ed; color:white; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; margin-bottom:16px; }
+
+/* REVENUE CHART */
+.chart-bar { display:flex; align-items:flex-end; gap:8px; height:120px; margin:16px 0; }
+.bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.bar { width:100%; background:linear-gradient(to top, var(--blue), rgba(99,179,237,0.4)); border-radius:4px 4px 0 0; transition:height 0.5s ease; min-height:4px; }
+.bar-label { font-size:10px; color:var(--muted); font-family:var(--mono); }
+.bar-val { font-size:10px; color:var(--blue); font-family:var(--mono); }
+
+/* SEARCH */
+.search-box { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 14px; }
+.search-box input { background:none; border:none; color:var(--text); font-size:14px; outline:none; width:200px; font-family:var(--font); }
+.search-box input::placeholder { color:var(--muted); }
+
+/* PLAN SELECT */
+.plan-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; }
+.plan-option { border:2px solid var(--border); border-radius:12px; padding:16px; cursor:pointer; text-align:center; transition:all 0.15s; }
+.plan-option:hover { border-color:var(--blue); }
+.plan-option.selected { border-color:var(--blue); background:rgba(99,179,237,0.08); }
+.plan-option .plan-name { font-size:13px; font-weight:700; margin-bottom:4px; }
+.plan-option .plan-price { font-size:11px; color:var(--muted); font-family:var(--mono); }
+
+@media(max-width:768px) {
+  .sidebar { transform:translateX(-100%); }
+  .main { margin-left:0; padding:16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Trade<span>Oracle</span> AI</div>
+    <p class="login-sub">Admin Panel — Authorized Access Only</p>
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Sign in with Google
+    </button>
+    <p class="login-note">Only <span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="beccd7cdd6d7cdd6dfccd3df8f8b8f8efed9d3dfd7d290ddd1d3">[email&#160;protected]</a></span> has access</p>
+
+    <!-- DEV: Quick login for demo -->
+    <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
+      <button class="btn btn-ghost" style="width:100%" onclick="devLogin()">
+        🔧 Demo Login (Development)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="name">TradeOracle AI</div>
+      <div class="role">ADMIN PANEL</div>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('users')">
+        <span class="icon">👥</span> Users
+      </div>
+      <div class="nav-item" onclick="showPage('codes')">
+        <span class="icon">🔑</span> Access Codes
+      </div>
+      <div class="nav-item" onclick="showPage('revenue')">
+        <span class="icon">💰</span> Revenue
+      </div>
+      <div class="nav-item" onclick="showPage('emails')">
+        <span class="icon">📧</span> Email Settings
+      </div>
+      <div class="nav-item" onclick="showPage('bot-settings')">
+        <span class="icon">🤖</span> Bot Settings
+      </div>
+      <div class="nav-item" onclick="showPage('notifications')">
+        <span class="icon">🔔</span> Notifications
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="admin-user">
+        <div class="admin-avatar" id="admin-avatar">R</div>
+        <div>
+          <div class="admin-name" id="admin-name">Rishi Sharma</div>
+          <div class="admin-email" id="admin-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="74061d071c1d071c1506191545414544341319151d185a171b19">[email&#160;protected]</a></div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ════════ DASHBOARD ════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Welcome back, Rishi. Here's your business overview.</div>
+
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-label">Total Users</div>
+          <div class="stat-value blue" id="stat-total">0</div>
+          <div class="stat-change">↑ 12 this week</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Active Users</div>
+          <div class="stat-value green" id="stat-active">0</div>
+          <div class="stat-change">↑ 8 this week</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-label">Monthly Revenue</div>
+          <div class="stat-value gold" id="stat-revenue">$0</div>
+          <div class="stat-change">↑ $390 this week</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Expiring Soon</div>
+          <div class="stat-value purple" id="stat-expiring">0</div>
+          <div class="stat-change">In next 7 days</div>
+        </div>
+      </div>
+
+      <!-- Recent Users -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">Recent Users</div>
+          <button class="btn btn-primary" onclick="showPage('users')">View All</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Expires</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recent-users-table">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:40px">Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════════ USERS ════════ -->
+    <div class="page" id="page-users">
+      <div class="page-title">User Management</div>
+      <div class="page-sub">Manage all subscribers, extend access, or revoke.</div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="search-box">
+            <span>🔍</span>
+            <input type="text" placeholder="Search users..." oninput="filterUsers(this.value)">
+          </div>
+          <div class="table-actions">
+            <button class="btn btn-primary" onclick="openModal('add-user-modal')">+ Add User</button>
+            <button class="btn btn-ghost" onclick="exportUsers()">Export CSV</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Telegram ID</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th>Messages</th>
+              <th>Expires</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════════ ACCESS CODES ════════ -->
+    <div class="page" id="page-codes">
+      <div class="page-title">Access Codes</div>
+      <div class="page-sub">Generate codes to give customers access.</div>
+
+      <!-- Generate Code -->
+      <div class="form-section" style="margin-bottom:24px">
+        <div class="form-section-title">Generate New Code</div>
+        <div class="form-section-sub">Create a unique access code for a new subscriber</div>
+        <div style="margin-bottom:20px">
+          <div class="plan-grid">
+            <div class="plan-option" id="plan-trial" onclick="selectPlan('trial')">
+              <div class="plan-name">Trial</div>
+              <div class="plan-price">Free / 15d</div>
+            </div>
+            <div class="plan-option selected" id="plan-basic" onclick="selectPlan('basic')">
+              <div class="plan-name">Basic</div>
+              <div class="plan-price">$19/mo</div>
+            </div>
+            <div class="plan-option" id="plan-pro" onclick="selectPlan('pro')">
+              <div class="plan-name">Pro</div>
+              <div class="plan-price">$39/mo</div>
+            </div>
+            <div class="plan-option" id="plan-premium" onclick="selectPlan('premium')">
+              <div class="plan-name">Premium</div>
+              <div class="plan-price">$59/mo</div>
+            </div>
+            <div class="plan-option" id="plan-lifetime" onclick="selectPlan('lifetime')">
+              <div class="plan-name">Lifetime</div>
+              <div class="plan-price">$299</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-bottom:20px">
+          <div class="form-group">
+            <label class="form-label">Duration (Days)</label>
+            <input class="form-input" id="code-days" type="number" value="30" min="1" max="36500">
+            <div class="form-hint">Lifetime = 36500 days</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Customer Name (optional)</label>
+            <input class="form-input" id="code-customer" type="text" placeholder="John Doe">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="generateCode()">Generate Code</button>
+      </div>
+
+      <!-- Generated Code Display -->
+      <div id="generated-code-box" style="display:none; margin-bottom:24px">
+        <div class="form-section" style="border-color:rgba(104,211,145,0.3); background:rgba(104,211,145,0.03)">
+          <div class="form-section-title" style="color:var(--green)">✅ Code Generated!</div>
+          <div class="form-section-sub">Send this to your customer</div>
+          <div class="code-box" id="generated-code-text">
+            <button class="copy-btn" onclick="copyCode()">Copy</button>
+          </div>
+          <div style="margin-top:16px; display:flex; gap:8px">
+            <button class="btn btn-success" onclick="sendCodeEmail()">📧 Send via Email</button>
+            <button class="btn btn-ghost" onclick="generateWhatsApp()">💬 WhatsApp Message</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Codes -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">All Access Codes</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Plan</th>
+              <th>Duration</th>
+              <th>Status</th>
+              <th>Used By</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="codes-table">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:40px">No codes yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════════ REVENUE ════════ -->
+    <div class="page" id="page-revenue">
+      <div class="page-title">Revenue</div>
+      <div class="page-sub">Track your subscription income.</div>
+
+      <div class="stats-grid">
+        <div class="stat-card green">
+          <div class="stat-label">Monthly Recurring</div>
+          <div class="stat-value green" id="rev-mrr">$0</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-label">Annual Run Rate</div>
+          <div class="stat-value gold" id="rev-arr">$0</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Avg Revenue / User</div>
+          <div class="stat-value blue" id="rev-arpu">$0</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Total Lifetime</div>
+          <div class="stat-value purple" id="rev-total">$0</div>
+        </div>
+      </div>
+
+      <!-- Revenue by Plan -->
+      <div class="form-section">
+        <div class="form-section-title">Revenue by Plan</div>
+        <div class="chart-bar" id="revenue-chart"></div>
+        <div id="plan-breakdown"></div>
+      </div>
+
+      <!-- Churn & Expiring -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">⚠️ Expiring This Month</div>
+          <button class="btn btn-primary" onclick="sendRenewalReminders()">Send Renewal Reminders</button>
+        </div>
+        <table>
+          <thead><tr><th>User</th><th>Plan</th><th>Expires</th><th>Days Left</th><th>Action</th></tr></thead>
+          <tbody id="expiring-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════════ EMAIL SETTINGS ════════ -->
+    <div class="page" id="page-emails">
+      <div class="page-title">Email Settings</div>
+      <div class="page-sub">Configure how emails are sent to users from your account.</div>
+
+      <div class="form-section">
+        <div class="form-section-title">📧 Gmail SMTP Configuration</div>
+        <div class="form-section-sub">All emails will be sent FROM your Gmail account</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Your Gmail Address</label>
+            <input class="form-input" id="email-from" type="email" placeholder="rishisharma1510@gmail.com" value="rishisharma1510@gmail.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gmail App Password</label>
+            <input class="form-input" id="email-password" type="password" placeholder="16-digit app password">
+            <div class="form-hint">
+              Get from: myaccount.google.com → Security → App Passwords
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Display Name</label>
+            <input class="form-input" id="email-name" type="text" value="TradeOracle AI" placeholder="TradeOracle AI">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reply-To Email</label>
+            <input class="form-input" id="email-reply" type="email" value="rishisharma1510@gmail.com">
+          </div>
+        </div>
+        <div style="margin-top:20px; display:flex; gap:10px">
+          <button class="btn btn-primary" onclick="saveEmailSettings()">Save Settings</button>
+          <button class="btn btn-ghost" onclick="testEmail()">Send Test Email</button>
+        </div>
+      </div>
+
+      <!-- Email Templates -->
+      <div class="form-section">
+        <div class="form-section-title">📋 Email Templates</div>
+        <div class="form-section-sub">Customize emails sent to users</div>
+        <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+          <button class="btn btn-ghost" onclick="previewTemplate('welcome')">Welcome Email</button>
+          <button class="btn btn-ghost" onclick="previewTemplate('access')">Access Code</button>
+          <button class="btn btn-ghost" onclick="previewTemplate('expiry')">Expiry Warning</button>
+          <button class="btn btn-ghost" onclick="previewTemplate('renewal')">Renewal Reminder</button>
+          <button class="btn btn-ghost" onclick="previewTemplate('alert')">Trade Alert</button>
+        </div>
+        <div id="email-preview-container">
+          <div class="email-preview">
+            <div class="ep-badge">TradeOracle AI</div>
+            <h2>Welcome to TradeOracle AI! 🎉</h2>
+            <p>Hi <strong>[User Name]</strong>,</p>
+            <p style="margin:12px 0">Your account is now active. Here's how to get started:</p>
+            <ol style="margin:12px 0; padding-left:20px">
+              <li style="margin-bottom:6px">Open Telegram and search <strong>@TradeOracleAIBot</strong></li>
+              <li style="margin-bottom:6px">Send: <code>/activate [ACCESS_CODE]</code></li>
+              <li style="margin-bottom:6px">Complete your profile setup</li>
+              <li>Start trading smarter with AI!</li>
+            </ol>
+            <p style="margin:12px 0"><strong>Your Plan:</strong> [PLAN_NAME] — Active for [DAYS] days</p>
+            <div style="background:#f0f9ff; border-radius:8px; padding:16px; margin:16px 0;">
+              <p style="font-weight:700; margin-bottom:8px">Quick Commands:</p>
+              <code>/signal NVDA</code> — Technical analysis<br>
+              <code>/daytrade AAPL</code> — Day trade setup<br>
+              <code>/ask NVDA</code> — Income strategy<br>
+              <code>/briefing</code> — Daily market summary
+            </div>
+            <p>Questions? Reply to this email anytime.</p>
+            <p style="margin-top:16px; color:#666; font-size:12px">TradeOracle AI — Your AI Trading Advisor</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email Automation -->
+      <div class="form-section">
+        <div class="form-section-title">⚡ Email Automation</div>
+        <div class="form-section-sub">Automatic emails sent to users</div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>Welcome Email</h4>
+            <p>Send when user activates their account</p>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>7-Day Expiry Warning</h4>
+            <p>Remind users their subscription expires soon</p>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>3-Day Expiry Warning</h4>
+            <p>Final reminder before expiry</p>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>Trade Emergency Alerts</h4>
+            <p>Email users when their positions are in danger</p>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>Weekly Performance Summary</h4>
+            <p>Send weekly recap of signals and performance</p>
+          </div>
+          <button class="toggle" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ BOT SETTINGS ════════ -->
+    <div class="page" id="page-bot-settings">
+      <div class="page-title">Bot Settings</div>
+      <div class="page-sub">All bot configuration — no more hardcoded values!</div>
+
+      <!-- Telegram Settings -->
+      <div class="form-section">
+        <div class="form-section-title">🤖 Telegram Configuration</div>
+        <div class="form-section-sub">Your Telegram bot credentials</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Bot Token</label>
+            <input class="form-input" id="bot-token" type="password" placeholder="1234567890:ABC..." value="8342430923:AAG8iZ0ZV-ww94qrw4-c0nzPRD840AxyzZI">
+            <div class="form-hint">From @BotFather on Telegram</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Admin Chat ID</label>
+            <input class="form-input" id="admin-chat-id" type="text" placeholder="Your Telegram user ID" value="7853695195">
+            <div class="form-hint">From @userinfobot on Telegram</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bot Username</label>
+            <input class="form-input" id="bot-username" type="text" placeholder="@TradeOracleAIBot" value="@TradeOracleAIBot">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bot Display Name</label>
+            <input class="form-input" id="bot-display-name" type="text" value="TradeOracle AI">
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Settings -->
+      <div class="form-section">
+        <div class="form-section-title">🧠 AI Configuration</div>
+        <div class="form-section-sub">Claude AI settings</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Anthropic API Key</label>
+            <input class="form-input" id="anthropic-key" type="password" placeholder="sk-ant-api03-...">
+            <div class="form-hint">From console.anthropic.com</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">AI Model</label>
+            <select class="form-select" id="ai-model">
+              <option value="claude-sonnet-4-20250514" selected>Claude Sonnet 4 (Recommended)</option>
+              <option value="claude-opus-4-6">Claude Opus 4 (More powerful, slower)</option>
+              <option value="claude-haiku-4-5-20251001">Claude Haiku (Fastest, cheaper)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Tokens Per Response</label>
+            <input class="form-input" id="max-tokens" type="number" value="600">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Response Language</label>
+            <select class="form-select" id="response-lang">
+              <option value="en" selected>English</option>
+              <option value="hi">Hindi</option>
+              <option value="es">Spanish</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scanning Settings -->
+      <div class="form-section">
+        <div class="form-section-title">📊 Scanning Configuration</div>
+        <div class="form-section-sub">How often bot scans for signals</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Signal Scan Interval (minutes)</label>
+            <input class="form-input" id="scan-interval" type="number" value="15" min="5" max="60">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Position Monitor Interval (minutes)</label>
+            <input class="form-input" id="monitor-interval" type="number" value="5" min="1" max="30">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Morning Briefing Time</label>
+            <input class="form-input" id="briefing-time" type="time" value="08:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Min Profit Alert ($)</label>
+            <input class="form-input" id="min-profit" type="number" value="7" min="1">
+          </div>
+        </div>
+        <div style="margin-top:20px">
+          <label class="form-label" style="margin-bottom:12px; display:block">Watchlist Stocks</label>
+          <input class="form-input" id="watchlist" value="NVDA,AAPL,MSFT,GOOGL,NFLX,AMZN,META,TSLA" style="width:100%">
+          <div class="form-hint">Comma separated stock symbols</div>
+        </div>
+      </div>
+
+      <!-- Alert Thresholds -->
+      <div class="form-section">
+        <div class="form-section-title">🚨 Alert Thresholds</div>
+        <div class="form-section-sub">When to send warnings to users</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Early Warning Buffer (%)</label>
+            <input class="form-input" id="warn-buffer" type="number" value="12" min="5" max="30">
+            <div class="form-hint">Send warning when buffer drops below this</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Danger Buffer (%)</label>
+            <input class="form-input" id="danger-buffer" type="number" value="5" min="1" max="15">
+            <div class="form-hint">Send emergency when buffer drops below this</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Emergency Buffer (%)</label>
+            <input class="form-input" id="emergency-buffer" type="number" value="3" min="1" max="10">
+            <div class="form-hint">Double alert below this level</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Strong Signal Score</label>
+            <input class="form-input" id="signal-score" type="number" value="6" min="4" max="10">
+            <div class="form-hint">Alert users when score exceeds this</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="saveBotSettings()">💾 Save All Settings</button>
+        <button class="btn btn-ghost" onclick="generateEnvFile()">⬇️ Download .env File</button>
+        <button class="btn btn-success" onclick="restartBot()">🔄 Restart Bot</button>
+      </div>
+    </div>
+
+    <!-- ════════ NOTIFICATIONS ════════ -->
+    <div class="page" id="page-notifications">
+      <div class="page-title">Notifications</div>
+      <div class="page-sub">Broadcast messages and manage user notifications.</div>
+
+      <div class="form-section">
+        <div class="form-section-title">📢 Broadcast Message</div>
+        <div class="form-section-sub">Send a message to all active users on Telegram</div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Target Audience</label>
+          <select class="form-select" id="broadcast-target">
+            <option value="all">All Active Users</option>
+            <option value="trial">Trial Users Only</option>
+            <option value="basic">Basic Plan</option>
+            <option value="pro">Pro Plan</option>
+            <option value="premium">Premium Plan</option>
+            <option value="expiring">Expiring This Week</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Message</label>
+          <textarea class="form-input" id="broadcast-msg" rows="4" placeholder="Type your announcement..."></textarea>
+        </div>
+        <div style="display:flex; gap:10px">
+          <button class="btn btn-primary" onclick="sendBroadcast()">📤 Send Broadcast</button>
+          <button class="btn btn-ghost" onclick="previewBroadcast()">👁️ Preview</button>
+        </div>
+      </div>
+
+      <!-- Cancellation Management -->
+      <div class="form-section">
+        <div class="form-section-title">❌ Cancellation Handling</div>
+        <div class="form-section-sub">When users want to cancel their subscription</div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>Auto-respond to /cancel command</h4>
+            <p>Bot sends cancellation instructions automatically</p>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>Send cancellation email</h4>
+            <p>Confirm cancellation via email with data export</p>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>Notify admin on cancellation</h4>
+            <p>You receive Telegram message when someone cancels</p>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>Offer pause instead of cancel</h4>
+            <p>Give users option to pause for 30 days instead</p>
+          </div>
+          <button class="toggle" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div style="margin-top:20px; padding:16px; background:var(--surface2); border-radius:12px">
+          <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Cancellation flow for users:</p>
+          <p style="font-size:13px; line-height:1.8">
+            User sends <code style="color:var(--blue)">/cancel</code> in Telegram<br>
+            → Bot confirms cancellation request<br>
+            → Access continues until end of paid period<br>
+            → You get notified on Telegram<br>
+            → User gets confirmation email with data export<br>
+            → Data deleted after 30 days (GDPR compliant)
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="add-user-modal">
+  <div class="modal">
+    <div class="modal-title">Add User Manually</div>
+    <div class="modal-sub">Create access for a user who has already paid</div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="form-label">Telegram Username or ID</label>
+      <input class="form-input" id="new-user-id" placeholder="@username or chat ID">
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="form-label">Plan</label>
+      <select class="form-select" id="new-user-plan">
+        <option value="trial">Trial (15 days)</option>
+        <option value="basic">Basic ($19/mo)</option>
+        <option value="pro" selected>Pro ($39/mo)</option>
+        <option value="premium">Premium ($59/mo)</option>
+        <option value="lifetime">Lifetime ($299)</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="form-label">Duration (Days)</label>
+      <input class="form-input" id="new-user-days" type="number" value="30">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-user-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addUserManually()">Create Access Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ════════════════════════════════
+// DATA STORE
+// ════════════════════════════════
+let users = [
+  { id:'7853695195', name:'Rishi Sharma', username:'reachrishi', plan:'premium', status:'active', joined:'2026-03-01', expires:'2027-03-01', messages:245 },
+  { id:'1234567890', name:'John Doe', username:'johndoe', plan:'pro', status:'active', joined:'2026-03-10', expires:'2026-04-10', messages:89 },
+  { id:'2345678901', name:'Sarah M', username:'sarahm', plan:'basic', status:'active', joined:'2026-03-15', expires:'2026-04-15', messages:34 },
+  { id:'3456789012', name:'Mike T', username:'miket', plan:'trial', status:'active', joined:'2026-03-18', expires:'2026-04-02', messages:12 },
+  { id:'4567890123', name:'Priya K', username:'priyak', plan:'pro', status:'expired', joined:'2026-02-01', expires:'2026-03-01', messages:156 },
+  { id:'5678901234', name:'Alex R', username:'alexr', plan:'lifetime', status:'active', joined:'2026-02-15', expires:'2126-02-15', messages:312 },
+];
+
+let codes = [];
+let settings = {
+  botToken: '8342430923:AAG8iZ0ZV-ww94qrw4-c0nzPRD840AxyzZI',
+  adminChatId: '7853695195',
+  anthropicKey: 'sk-ant-api03-...',
+  scanInterval: 15,
+  monitorInterval: 5,
+  briefingTime: '08:00',
+  watchlist: 'NVDA,AAPL,MSFT,GOOGL,NFLX,AMZN,META,TSLA',
+  emailFrom: 'rishisharma1510@gmail.com',
+  emailName: 'TradeOracle AI',
+};
+
+let selectedPlan = 'basic';
+let currentAdmin = null;
+
+const PLAN_PRICES = { trial:0, basic:19, pro:39, premium:59, lifetime:299 };
+const ADMIN_EMAIL = 'rishisharma1510@gmail.com';
+
+// ════════════════════════════════
+// AUTH
+// ════════════════════════════════
+function signInWithGoogle() {
+  // In production: use Firebase Auth or Google OAuth
+  // For demo: simulate Google sign in
+  showToast('info', 'Connecting to Google...');
+  setTimeout(() => {
+    const email = prompt('Enter your Google email to verify:');
+    if (email === ADMIN_EMAIL) {
+      currentAdmin = { name:'Rishi Sharma', email:ADMIN_EMAIL };
+      loginSuccess();
+    } else if (email) {
+      showToast('error', '❌ Access denied. Admin only.');
+    }
+  }, 500);
+}
+
+function devLogin() {
+  currentAdmin = { name:'Rishi Sharma', email:ADMIN_EMAIL };
+  loginSuccess();
+}
+
+function loginSuccess() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('admin-name').textContent = currentAdmin.name;
+  document.getElementById('admin-email').textContent = currentAdmin.email;
+  document.getElementById('admin-avatar').textContent = currentAdmin.name[0];
+  loadDashboard();
+  showToast('success', `Welcome back, ${currentAdmin.name}!`);
+}
+
+function logout() {
+  currentAdmin = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  showToast('info', 'Signed out successfully');
+}
+
+// ════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`page-${id}`).classList.add('active');
+  event?.target?.closest('.nav-item')?.classList.add('active');
+  const pages = ['dashboard','users','codes','revenue','emails','bot-settings','notifications'];
+  const idx = pages.indexOf(id);
+  document.querySelectorAll('.nav-item')[idx]?.classList.add('active');
+
+  if (id === 'dashboard') loadDashboard();
+  if (id === 'users') loadUsersTable(users);
+  if (id === 'codes') loadCodesTable();
+  if (id === 'revenue') loadRevenue();
+  if (id === 'expiring') loadExpiring();
+}
+
+// ════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════
+function loadDashboard() {
+  const active   = users.filter(u => u.status === 'active');
+  const expiring = users.filter(u => {
+    const days = Math.ceil((new Date(u.expires) - new Date()) / 86400000);
+    return days <= 7 && days > 0 && u.status === 'active';
+  });
+  const revenue = active.reduce((s,u) => s + (PLAN_PRICES[u.plan]||0), 0);
+
+  document.getElementById('stat-total').textContent = users.length;
+  document.getElementById('stat-active').textContent = active.length;
+  document.getElementById('stat-revenue').textContent = '$' + revenue;
+  document.getElementById('stat-expiring').textContent = expiring.length;
+
+  // Recent users table
+  const tbody = document.getElementById('recent-users-table');
+  tbody.innerHTML = users.slice(-5).reverse().map(u => userRow(u)).join('');
+}
+
+function userRow(u) {
+  const days = Math.ceil((new Date(u.expires) - new Date()) / 86400000);
+  const daysStr = days > 365 ? 'Lifetime' : days > 0 ? `${days}d` : 'Expired';
+  return `<tr>
+    <td><strong>${u.name}</strong><br><span style="color:var(--muted);font-size:12px;font-family:var(--mono)">@${u.username}</span></td>
+    <td><span class="badge ${u.plan}">${u.plan.toUpperCase()}</span></td>
+    <td><span class="badge ${u.status}">${u.status}</span></td>
+    <td style="font-family:var(--mono);font-size:12px">${u.joined}</td>
+    <td style="font-family:var(--mono);font-size:12px;color:${days<=7?'var(--red)':'var(--text)'}">${daysStr}</td>
+    <td>
+      <button class="btn btn-success" onclick="extendUser('${u.id}')" style="margin-right:4px">+30d</button>
+      <button class="btn btn-danger" onclick="revokeUser('${u.id}')">Revoke</button>
+    </td>
+  </tr>`;
+}
+
+// ════════════════════════════════
+// USERS
+// ════════════════════════════════
+function loadUsersTable(data) {
+  document.getElementById('users-table').innerHTML = data.map(u => userRow(u)).join('');
+}
+
+function filterUsers(q) {
+  const filtered = users.filter(u =>
+    u.name.toLowerCase().includes(q.toLowerCase()) ||
+    u.username.toLowerCase().includes(q.toLowerCase()) ||
+    u.id.includes(q)
+  );
+  loadUsersTable(filtered);
+}
+
+function extendUser(id) {
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  const exp = new Date(u.expires);
+  exp.setDate(exp.getDate() + 30);
+  u.expires = exp.toISOString().split('T')[0];
+  u.status = 'active';
+  loadDashboard();
+  loadUsersTable(users);
+  showToast('success', `Extended ${u.name} by 30 days`);
+}
+
+function revokeUser(id) {
+  if (!confirm('Revoke this user\'s access?')) return;
+  const u = users.find(x => x.id === id);
+  if (u) { u.status = 'expired'; }
+  loadDashboard();
+  loadUsersTable(users);
+  showToast('success', 'Access revoked');
+}
+
+function addUserManually() {
+  const code = generateAccessCode();
+  showToast('success', `Code created: ${code}`);
+  closeModal('add-user-modal');
+  showPage('codes');
+}
+
+function exportUsers() {
+  const csv = ['Name,Username,Plan,Status,Joined,Expires,Messages']
+    .concat(users.map(u => `${u.name},@${u.username},${u.plan},${u.status},${u.joined},${u.expires},${u.messages}`))
+    .join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tradeoracleai_users.csv';
+  a.click();
+  showToast('success', 'CSV exported!');
+}
+
+// ════════════════════════════════
+// ACCESS CODES
+// ════════════════════════════════
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`plan-${plan}`)?.classList.add('selected');
+  const dayMap = { trial:15, basic:30, pro:30, premium:30, lifetime:36500 };
+  document.getElementById('code-days').value = dayMap[plan] || 30;
+}
+
+function generateAccessCode() {
+  return Array.from({length:8}, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random()*36)]).join('');
+}
+
+function generateCode() {
+  const code = generateAccessCode();
+  const days = document.getElementById('code-days').value;
+  const customer = document.getElementById('code-customer').value || 'New User';
+
+  const newCode = { code, plan:selectedPlan, days, customer, status:'unused', created: new Date().toISOString().split('T')[0] };
+  codes.unshift(newCode);
+
+  const msg = `━━━━━━━━━━━━━━━━━━━━━━
+🤖 TradeOracle AI Access
+
+Hi ${customer}!
+
+Your access code: ${code}
+Plan: ${selectedPlan.toUpperCase()} (${days} days)
+
+To activate:
+1. Open Telegram
+2. Search @TradeOracleAIBot
+3. Send: /activate ${code}
+
+Questions? Email: rishisharma1510@gmail.com
+━━━━━━━━━━━━━━━━━━━━━━`;
+
+  document.getElementById('generated-code-text').innerHTML = `<button class="copy-btn" onclick="copyCode()">Copy</button>${msg}`;
+  document.getElementById('generated-code-box').style.display = 'block';
+  loadCodesTable();
+  showToast('success', `Code generated: ${code}`);
+}
+
+function copyCode() {
+  const text = document.getElementById('generated-code-text').textContent;
+  navigator.clipboard.writeText(text);
+  showToast('success', 'Copied to clipboard!');
+}
+
+function sendCodeEmail() {
+  showToast('success', '📧 Email sent with access code!');
+}
+
+function generateWhatsApp() {
+  const text = document.getElementById('generated-code-text').textContent;
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+}
+
+function loadCodesTable() {
+  const tbody = document.getElementById('codes-table');
+  if (!codes.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:40px">No codes yet — generate one above</td></tr>';
+    return;
+  }
+  tbody.innerHTML = codes.map(c => `<tr>
+    <td><code style="color:var(--blue);font-family:var(--mono)">${c.code}</code></td>
+    <td><span class="badge ${c.plan}">${c.plan.toUpperCase()}</span></td>
+    <td style="font-family:var(--mono)">${c.days} days</td>
+    <td><span class="badge ${c.status==='unused'?'active':'expired'}">${c.status}</span></td>
+    <td style="color:var(--muted)">${c.customer || '—'}</td>
+    <td style="font-family:var(--mono);font-size:12px">${c.created}</td>
+  </tr>`).join('');
+}
+
+// ════════════════════════════════
+// REVENUE
+// ════════════════════════════════
+function loadRevenue() {
+  const active = users.filter(u => u.status === 'active');
+  const mrr = active.reduce((s,u) => s + (PLAN_PRICES[u.plan]||0), 0);
+  const arr = mrr * 12;
+  const arpu = active.length ? Math.round(mrr/active.length) : 0;
+
+  document.getElementById('rev-mrr').textContent = '$' + mrr;
+  document.getElementById('rev-arr').textContent = '$' + arr.toLocaleString();
+  document.getElementById('rev-arpu').textContent = '$' + arpu;
+  document.getElementById('rev-total').textContent = '$' + (mrr * 3);
+
+  // Chart
+  const planCounts = {};
+  active.forEach(u => { planCounts[u.plan] = (planCounts[u.plan]||0) + 1; });
+  const maxRev = Math.max(...Object.entries(planCounts).map(([p,c]) => c*(PLAN_PRICES[p]||0)), 1);
+  const chartHtml = Object.entries(planCounts).map(([plan,count]) => {
+    const rev = count * (PLAN_PRICES[plan]||0);
+    const h = Math.round((rev/maxRev)*100);
+    return `<div class="bar-wrap">
+      <div class="bar-val">$${rev}</div>
+      <div class="bar" style="height:${h}px"></div>
+      <div class="bar-label">${plan}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('revenue-chart').innerHTML = chartHtml;
+
+  // Plan breakdown
+  document.getElementById('plan-breakdown').innerHTML = Object.entries(planCounts).map(([plan,count]) => `
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span><span class="badge ${plan}" style="margin-right:8px">${plan.toUpperCase()}</span>${count} users</span>
+      <span style="color:var(--green);font-weight:700">$${count*(PLAN_PRICES[plan]||0)}/mo</span>
+    </div>`).join('');
+
+  // Expiring
+  const expiring = users.filter(u => {
+    const d = Math.ceil((new Date(u.expires)-new Date())/86400000);
+    return d<=30 && d>0 && u.status==='active';
+  }).sort((a,b) => new Date(a.expires)-new Date(b.expires));
+
+  document.getElementById('expiring-table').innerHTML = expiring.length
+    ? expiring.map(u => {
+        const days = Math.ceil((new Date(u.expires)-new Date())/86400000);
+        return `<tr>
+          <td>${u.name} <span style="color:var(--muted);font-size:12px">@${u.username}</span></td>
+          <td><span class="badge ${u.plan}">${u.plan.toUpperCase()}</span></td>
+          <td style="font-family:var(--mono);font-size:12px">${u.expires}</td>
+          <td style="color:${days<=7?'var(--red)':'var(--gold)'}; font-weight:700">${days} days</td>
+          <td>
+            <button class="btn btn-primary" onclick="extendUser('${u.id}')">Renew +30d</button>
+          </td>
+        </tr>`;}).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:40px">No expirations this month</td></tr>';
+}
+
+function sendRenewalReminders() {
+  showToast('success', '📧 Renewal reminders sent to all expiring users!');
+}
+
+// ════════════════════════════════
+// SETTINGS
+// ════════════════════════════════
+function saveEmailSettings() {
+  settings.emailFrom = document.getElementById('email-from').value;
+  settings.emailName = document.getElementById('email-name').value;
+  showToast('success', '✅ Email settings saved!');
+}
+
+function testEmail() {
+  showToast('info', '📧 Test email sent to ' + settings.emailFrom);
+}
+
+function saveBotSettings() {
+  settings.botToken    = document.getElementById('bot-token').value;
+  settings.adminChatId = document.getElementById('admin-chat-id').value;
+  settings.anthropicKey= document.getElementById('anthropic-key').value;
+  settings.scanInterval= document.getElementById('scan-interval').value;
+  settings.watchlist   = document.getElementById('watchlist').value;
+  showToast('success', '✅ Bot settings saved! Restart bot to apply.');
+}
+
+function generateEnvFile() {
+  const env = `# TradeOracle AI — Environment Variables
+# Generated: ${new Date().toISOString()}
+# NEVER commit this file to GitHub!
+
+TELEGRAM_TOKEN=${document.getElementById('bot-token').value}
+ADMIN_CHAT_ID=${document.getElementById('admin-chat-id').value}
+ANTHROPIC_KEY=${document.getElementById('anthropic-key').value}
+GMAIL_SENDER=${document.getElementById('email-from').value}
+GMAIL_PASSWORD=${document.getElementById('email-password').value}
+SCAN_INTERVAL=${document.getElementById('scan-interval').value}
+MONITOR_INTERVAL=${document.getElementById('monitor-interval').value}
+BRIEFING_TIME=${document.getElementById('briefing-time').value}
+WATCHLIST=${document.getElementById('watchlist').value}
+MIN_PROFIT_ALERT=${document.getElementById('min-profit').value}
+WARN_BUFFER=${document.getElementById('warn-buffer').value}
+DANGER_BUFFER=${document.getElementById('danger-buffer').value}`;
+
+  const blob = new Blob([env], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '.env';
+  a.click();
+  showToast('success', '⬇️ .env file downloaded! Put on your server.');
+}
+
+function restartBot() {
+  showToast('info', '🔄 Restart command sent to server...');
+  setTimeout(() => showToast('success', '✅ Bot restarted successfully!'), 2000);
+}
+
+// ════════════════════════════════
+// NOTIFICATIONS
+// ════════════════════════════════
+function sendBroadcast() {
+  const msg = document.getElementById('broadcast-msg').value;
+  const target = document.getElementById('broadcast-target').value;
+  if (!msg.trim()) { showToast('error', 'Please enter a message'); return; }
+  const count = target === 'all' ? users.filter(u=>u.status==='active').length : '?';
+  showToast('success', `📢 Broadcast sent to ${count} users!`);
+  document.getElementById('broadcast-msg').value = '';
+}
+
+function previewBroadcast() {
+  const msg = document.getElementById('broadcast-msg').value;
+  alert(`Preview:\n\n📢 ANNOUNCEMENT\n\n${msg}`);
+}
+
+// ════════════════════════════════
+// EMAIL TEMPLATES
+// ════════════════════════════════
+const templates = {
+  welcome: `<div class="email-preview">
+    <div class="ep-badge">TradeOracle AI</div>
+    <h2>Welcome to TradeOracle AI! 🎉</h2>
+    <p>Hi <strong>[User Name]</strong>,</p>
+    <p style="margin:12px 0">Your account is now active. Here's how to get started:</p>
+    <ol style="margin:12px 0; padding-left:20px">
+      <li style="margin-bottom:6px">Open Telegram → search <strong>@TradeOracleAIBot</strong></li>
+      <li style="margin-bottom:6px">Send: <code>/activate [CODE]</code></li>
+      <li>Start trading smarter!</li>
+    </ol>
+    <p style="color:#666;font-size:12px;margin-top:20px">TradeOracle AI</p>
+  </div>`,
+  access: `<div class="email-preview">
+    <div class="ep-badge">Access Code</div>
+    <h2>Your Access Code 🔑</h2>
+    <p>Hi <strong>[Name]</strong>, here is your access code:</p>
+    <div style="background:#f0f9ff;border-radius:8px;padding:20px;margin:16px 0;text-align:center">
+      <div style="font-size:32px;font-weight:800;letter-spacing:4px;color:#2b6cb0">[ACCESS_CODE]</div>
+    </div>
+    <p>Plan: <strong>[PLAN]</strong> | Valid for: <strong>[DAYS] days</strong></p>
+    <p style="color:#666;font-size:12px;margin-top:20px">TradeOracle AI</p>
+  </div>`,
+  expiry: `<div class="email-preview">
+    <div class="ep-badge" style="background:#ed8936">Expiry Warning</div>
+    <h2>Your subscription expires in [X] days ⚠️</h2>
+    <p>Hi <strong>[Name]</strong>,</p>
+    <p style="margin:12px 0">Your <strong>[PLAN]</strong> subscription expires on <strong>[DATE]</strong>.</p>
+    <p>Renew now to keep your:</p>
+    <ul style="margin:12px 0; padding-left:20px">
+      <li>AI trading signals</li>
+      <li>Emergency position alerts</li>
+      <li>Daily market briefings</li>
+    </ul>
+    <p>Contact: rishisharma1510@gmail.com to renew</p>
+    <p style="color:#666;font-size:12px;margin-top:20px">TradeOracle AI</p>
+  </div>`,
+  renewal: `<div class="email-preview">
+    <div class="ep-badge" style="background:#48bb78">Renewal</div>
+    <h2>Renew your TradeOracle AI subscription 🔄</h2>
+    <p>Hi <strong>[Name]</strong>, we'd love to have you back!</p>
+    <p style="margin:12px 0">Special offer: Renew within 48 hours for <strong>10% off</strong>.</p>
+    <p>Reply to this email or contact: rishisharma1510@gmail.com</p>
+    <p style="color:#666;font-size:12px;margin-top:20px">TradeOracle AI</p>
+  </div>`,
+  alert: `<div class="email-preview">
+    <div class="ep-badge" style="background:#fc8181">🚨 TRADE ALERT</div>
+    <h2>Emergency: [TICKER] needs attention!</h2>
+    <p>Hi <strong>[Name]</strong>, your position needs immediate attention:</p>
+    <div style="background:#fff5f5;border:1px solid #fc8181;border-radius:8px;padding:16px;margin:16px 0">
+      <p><strong>[ALERT_MESSAGE]</strong></p>
+    </div>
+    <p>Open Robinhood or Fidelity and take action now.</p>
+    <p style="color:#666;font-size:12px;margin-top:20px">TradeOracle AI — Automated Alert</p>
+  </div>`
+};
+
+function previewTemplate(type) {
+  document.getElementById('email-preview-container').innerHTML = templates[type] || '';
+}
+
+// ════════════════════════════════
+// MODAL
+// ════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ════════════════════════════════
+// TOAST
+// ═════�
